@@ -23,6 +23,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -31,6 +32,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.proyectobeta.R;
 import com.example.proyectobeta.Register.DatePickerFragment;
 import com.example.proyectobeta.Usuario.UsuarioProvider;
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.ByteArrayOutputStream;
@@ -54,6 +56,7 @@ public class EditUser extends AppCompatActivity {
 
     private Intent intentList;
     private ImageView ivIcon;
+    private MaterialSwitch switchBaja;
     private boolean imageOn = false;
     private Usuario userLog;
     private static final int REQUEST_SELECT_IMAGE = 100;
@@ -74,6 +77,7 @@ public class EditUser extends AppCompatActivity {
         btnEdit = findViewById(R.id.btnEdit);
         btnDelete = findViewById(R.id.btnDelete);
         ivIcon = findViewById(R.id.ivIconImage);
+        switchBaja = findViewById(R.id.switchBaja);
 
         Intent intent = getIntent();
         Usuario userSelected = (Usuario) intent.getSerializableExtra("userSelected");
@@ -82,6 +86,7 @@ public class EditUser extends AppCompatActivity {
         if(typeAcc==0){
             spAcc.setEnabled(true);
             spAcc2.setClickable(true);
+            switchBaja.setEnabled(true);
         }
 
 
@@ -192,6 +197,9 @@ public class EditUser extends AppCompatActivity {
             String imageUriString = new String(usuario.getUserImage());
             ivIcon.setImageURI(Uri.parse(imageUriString));
         }
+
+        switchBaja.setChecked(usuario.getUserStatus() == 1);
+
     }
     public void editarUsuario(View view) {
         String newUser = tilUser.getEditText().getText().toString();
@@ -203,6 +211,10 @@ public class EditUser extends AppCompatActivity {
         String selectedOption = spAcc.getText().toString();
         if (selectedOption.equals("Admin")) {
             newAccType = 0;
+        }
+        int newStatus=0;
+        if(switchBaja.isChecked()){
+            newStatus=1;
         }
 
         ContentValues values = new ContentValues();
@@ -219,6 +231,7 @@ public class EditUser extends AppCompatActivity {
             byte[] imageBytes = baos.toByteArray();
             values.put(UsuarioProvider.Usuarios.COL_ICON, imageBytes);
         }
+        values.put(UsuarioProvider.Usuarios.COL_STATUS, newStatus);
 
         String selection = UsuarioProvider.Usuarios._ID + "=?";
         String[] selectionArgs = {String.valueOf(userId)};

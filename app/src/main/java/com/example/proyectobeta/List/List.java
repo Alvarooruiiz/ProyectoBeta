@@ -8,6 +8,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,6 +39,7 @@ public class List extends AppCompatActivity {
     private RecyclerAdapter adapter;
     private RecyclerView rvList;
     private Usuario userLog;
+    private ArrayList<Usuario> listUsers;
 
     private SearchView searchView;
     private static final int REQUEST_EDIT_USER = 102;
@@ -49,9 +51,7 @@ public class List extends AppCompatActivity {
         Intent intent = getIntent();
         userLog = (Usuario) intent.getSerializableExtra("userLog");
 
-        if (savedInstanceState == null) {
-            listar();
-        }
+        rvList = findViewById(R.id.rvList);
 
         searchView = findViewById(R.id.search_bar);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -62,13 +62,10 @@ public class List extends AppCompatActivity {
 
             @Override
             public boolean onQueryTextChange(String newText) {
-                adapter.filtrar(newText);
-                listar();
+                filtrar(newText);
                 return true;
             }
         });
-        
-        rvList = findViewById(R.id.rvList);
     }
 
     @Override
@@ -78,8 +75,6 @@ public class List extends AppCompatActivity {
     }
 
     private void listar() {
-        rvList = findViewById(R.id.rvList);
-
         String[] columnas = new String[]{
                 UsuarioProvider.Usuarios._ID,
                 UsuarioProvider.Usuarios.COL_USER,
@@ -87,7 +82,8 @@ public class List extends AppCompatActivity {
                 UsuarioProvider.Usuarios.COL_PASSWORD,
                 UsuarioProvider.Usuarios.COL_DATE,
                 UsuarioProvider.Usuarios.COL_ACCTYPE,
-                UsuarioProvider.Usuarios.COL_ICON
+                UsuarioProvider.Usuarios.COL_ICON,
+                UsuarioProvider.Usuarios.COL_STATUS
         };
         Uri versionesUri = UsuarioProvider.CONTENT_URI;
         ContentResolver cr = getContentResolver();
@@ -98,10 +94,7 @@ public class List extends AppCompatActivity {
                 null);
         Usuario objetoDato;
 
-        ArrayList<Usuario> datos = new ArrayList<>();
-        adapter = new RecyclerAdapter(this, datos, userLog);
-
-        datos.clear();
+        listUsers = new ArrayList<>();
 
         if (cur != null) {
             if (cur.moveToFirst()) {
@@ -112,6 +105,7 @@ public class List extends AppCompatActivity {
                 int colDat = cur.getColumnIndex(UsuarioProvider.Usuarios.COL_DATE);
                 int colAcc = cur.getColumnIndex(UsuarioProvider.Usuarios.COL_ACCTYPE);
                 int colIcon = cur.getColumnIndex(UsuarioProvider.Usuarios.COL_ICON);
+                int colStatus = cur.getColumnIndex(UsuarioProvider.Usuarios.COL_STATUS);
 
                 do {
                     int id = cur.getInt(colId);
@@ -121,14 +115,37 @@ public class List extends AppCompatActivity {
                     String date = cur.getString(colDat);
                     int accType = cur.getInt(colAcc);
                     byte[] icon = cur.getBlob(colIcon);
-                    objetoDato = new Usuario(id, user, mail, pass, date, accType, icon);
-                    datos.add(objetoDato);
+                    int status = cur.getInt(colStatus);
+                    Log.d("Estado Usuario", "Estado: " + status);
+
+                    objetoDato = new Usuario(id, user, mail, pass, date, accType, icon,status);
+                    listUsers.add(objetoDato);
                 } while (cur.moveToNext());
             }
             cur.close();
         }
+
+        adapter = new RecyclerAdapter(this, listUsers, userLog);
         rvList.setAdapter(adapter);
         rvList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+    }
+
+    private void filtrar(String texto) {
+        ArrayList<Usuario> usuariosFiltrados = new ArrayList<>();
+        if (texto.isEmpty()) {
+            usuariosFiltrados.addAll(listUsers);
+        } else {
+            texto = texto.toLowerCase();
+            for (Usuario usuario : listUsers) {
+                if (usuario.getUserName().toLowerCase().contains(texto) ||
+                        usuario.getUserMail().toLowerCase().contains(texto) ||
+                        usuario.getUserBirth().toLowerCase().contains(texto)) {
+                    usuariosFiltrados.add(usuario);
+                }
+            }
+        }
+        adapter = new RecyclerAdapter(this, usuariosFiltrados, userLog);
+        rvList.setAdapter(adapter);
     }
 
     @Override
@@ -138,4 +155,5 @@ public class List extends AppCompatActivity {
             listar();
         }
     }
+
 }

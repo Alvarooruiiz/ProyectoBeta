@@ -11,19 +11,12 @@ public class Usuario  implements Serializable {
     private String userBirth;
     private int userAcc;
     private byte[] userImage;
+    private int userStatus;
 
     public Usuario() {
     }
 
-    public Usuario(int id, String userName, String userMail, String userBirth, int userAcc,byte[] userImage) {
-        this.id = id;
-        this.userName = userName;
-        this.userMail = userMail;
-        this.userBirth = userBirth;
-        this.userAcc = userAcc;
-        this.userImage = userImage;
-    }
-    public Usuario(int id, String userName, String userMail,String userPass, String userBirth, int userAcc,byte[] userImage) {
+    public Usuario(int id, String userName, String userMail,String userPass, String userBirth, int userAcc,byte[] userImage, int userStatus) {
         this.id = id;
         this.userName = userName;
         this.userMail = userMail;
@@ -31,6 +24,7 @@ public class Usuario  implements Serializable {
         this.userBirth = userBirth;
         this.userAcc = userAcc;
         this.userImage = userImage;
+        this.userStatus = userStatus;
     }
 
     public int getId() {
@@ -87,5 +81,13 @@ public class Usuario  implements Serializable {
 
     public void setUserImage(byte[] userImage) {
         this.userImage = userImage;
+    }
+
+    public int getUserStatus() {
+        return userStatus;
+    }
+
+    public void setUserStatus(int userStatus) {
+        this.userStatus = userStatus;
     }
 }

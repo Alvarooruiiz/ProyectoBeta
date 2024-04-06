@@ -19,14 +19,14 @@ public class UsuarioProvider extends ContentProvider {
     public static final Uri CONTENT_URI = Uri.parse(URI);
 
     // Definimos el objeto UriMatcher
-    private static final int USUARIOS = 1; // Acceso generico a tabla
-    private static final int USUARIOS_ID = 2; // Acceso a una fila (acceso a usuarios por ID)
-    public static final UriMatcher URI_MATCHER; // Objeto UriMatcher
+    private static final int USUARIOS = 1;
+    private static final int USUARIOS_ID = 2;
+    public static final UriMatcher URI_MATCHER;
 
     // Base de datos
     public UsuariosBBDD usuarioBBDD;
     public static final String BD_NOMBRE = "DBUSUARIOS";
-    public static final int BD_VERSION = 1;
+    public static final int BD_VERSION = 2;
     public static final String TABLA_USUARIOS = "Usuarios";
 
     static {
@@ -44,7 +44,6 @@ public class UsuarioProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        // Si es una consulta a un ID concreto construimos el WHERE
         String where = selection;
         if(URI_MATCHER.match(uri) == USUARIOS_ID){
             where = "_id=" + uri.getLastPathSegment();
@@ -128,6 +127,7 @@ public class UsuarioProvider extends ContentProvider {
         public static final String COL_DATE = "user_birth";
         public static final String COL_ACCTYPE = "user_acc";
         public static final String COL_ICON = "user_image";
+        public static final String COL_STATUS = "user_status";
 
 
     }

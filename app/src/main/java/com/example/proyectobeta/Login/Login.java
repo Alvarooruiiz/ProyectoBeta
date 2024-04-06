@@ -17,6 +17,7 @@ import com.example.proyectobeta.List.List;
 import com.example.proyectobeta.List.Usuario;
 import com.example.proyectobeta.R;
 import com.example.proyectobeta.Register.Register;
+import com.example.proyectobeta.SharedEditRegister;
 import com.example.proyectobeta.Usuario.UsuarioProvider;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -58,7 +59,9 @@ public class Login extends AppCompatActivity {
         btnRegisterLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                intentRegister = new Intent(Login.this, Register.class);
+                intentRegister = new Intent(Login.this, SharedEditRegister.class);
+                intentRegister.putExtra("isRegistering",true);
+
                 startActivityForResult(intentRegister, REQUEST_REGISTER);
             }
         });
@@ -97,7 +100,7 @@ public class Login extends AppCompatActivity {
             String date = cursor.getString(cursor.getColumnIndexOrThrow(UsuarioProvider.Usuarios.COL_DATE));
             byte[] icon = cursor.getBlob(cursor.getColumnIndexOrThrow(UsuarioProvider.Usuarios.COL_ICON));
 
-            Usuario usuario = new Usuario(userId, user, email, password, date, accType, icon);
+            Usuario usuario = new Usuario(userId, user, email, password, date, accType, icon,0);
             cursor.close();
             if (passText.equals(password)) {
                 return usuario;

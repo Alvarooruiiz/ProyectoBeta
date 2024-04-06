@@ -24,6 +24,7 @@
         <activity android:name=".Register.Register"></activity>
         <activity android:name=".List.List"></activity>
         <activity android:name=".List.EditUser"></activity>
+        <activity android:name=".SharedEditRegister"></activity>
         <provider
             android:authorities="com.example.proyectobeta.usuario"
             android:name=".Usuario.UsuarioProvider"

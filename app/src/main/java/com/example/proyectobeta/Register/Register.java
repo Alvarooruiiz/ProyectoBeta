@@ -33,6 +33,7 @@ import java.io.IOException;
 
 public class Register extends AppCompatActivity {
 
+    private Button btnDelete;
     private Button btnRegister;
     private Button btnLoginLayout;
     private Intent loginLayout;

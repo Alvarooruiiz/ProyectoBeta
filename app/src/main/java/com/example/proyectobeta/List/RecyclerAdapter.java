@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,9 +18,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.cardview.widget.CardView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.proyectobeta.R;
+import com.example.proyectobeta.SharedEditRegister;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -28,7 +32,6 @@ import java.util.Objects;
 public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHolder> {
 
     private ArrayList<Usuario> usuarios;
-    private ArrayList<Usuario> usuariosFiltrados;
     private Context context;
     private int position;
     private Usuario userLog;
@@ -38,26 +41,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     public RecyclerAdapter(Context context, ArrayList<Usuario> usuarios, Usuario userLog) {
         this.context = context;
         this.usuarios = usuarios;
-        this.usuariosFiltrados = new ArrayList<>(usuarios);
         this.userLog = userLog;
     }
 
-    public void filtrar(String texto) {
-        usuariosFiltrados.clear();
-        if (texto.isEmpty()) {
-            usuariosFiltrados.addAll(usuarios);
-        } else {
-            texto = texto.toLowerCase();
-            for (Usuario usuario : usuarios) {
-                if (usuario.getUserName().toLowerCase().contains(texto) ||
-                        usuario.getUserMail().toLowerCase().contains(texto) ||
-                        usuario.getUserBirth().toLowerCase().contains(texto)) {
-                    usuariosFiltrados.add(usuario);
-                }
-            }
-        }
-        notifyDataSetChanged();
-    }
 
     @NonNull
     @Override
@@ -81,11 +67,15 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             holder.avatar.setImageResource(R.drawable.user_icon);
         }
 
+        int backgroundColor = userSelected.getUserStatus() == 1 ? Color.parseColor("#FFBABABA") : Color.parseColor("#D8F4B6");
+        holder.constraintLayout.setBackgroundColor(backgroundColor);
+
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (userLog != null && userLog.getUserAcc() == 0 || (userLog.getUserAcc() == 1 && userSelected.getUserName().equals(userLog.getUserName()))) {
-                    Intent intent = new Intent(context, EditUser.class);
+                    Intent intent = new Intent(context, SharedEditRegister.class);
+                    intent.putExtra("isRegistering",false);
                     intent.putExtra("userSelected", userSelected);
                     intent.putExtra("userLog",userLog);
                     ((List) context).startActivityForResult(intent, REQUEST_EDIT_USER);
@@ -95,6 +85,8 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             }
         });
     }
+
+
 
 
 
@@ -126,6 +118,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         TextView correo;
         TextView fechaNacimiento;
         TextView tipoCuenta;
+        ConstraintLayout constraintLayout;
 
         public ViewHolder(View itemView) {
             super(itemView);
@@ -134,6 +127,7 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
             correo = itemView.findViewById(R.id.tvMailList);
             fechaNacimiento = itemView.findViewById(R.id.tvDateList);
             tipoCuenta = itemView.findViewById(R.id.tvAccList);
+            constraintLayout = itemView.findViewById(R.id.constraintColor);
         }
     }
 }
