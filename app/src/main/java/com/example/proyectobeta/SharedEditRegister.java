@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
@@ -29,7 +30,6 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import com.example.proyectobeta.List.Usuario;
 import com.example.proyectobeta.Login.Login;
 import com.example.proyectobeta.Register.DatePickerFragment;
-import com.example.proyectobeta.Register.Register;
 import com.example.proyectobeta.Usuario.UsuarioProvider;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputLayout;
@@ -45,7 +45,7 @@ public class SharedEditRegister extends AppCompatActivity {
 
     private TextInputLayout tilUser;
     private TextInputLayout tilPass;
-    private TextInputLayout tipPassRep;
+    private TextInputLayout tilPassRep;
     private TextInputLayout tilMail;
 
 
@@ -107,8 +107,8 @@ public class SharedEditRegister extends AppCompatActivity {
         EditText etPass = tilPass.getEditText();
         String passText = etPass.getText().toString().trim();
 
-        tipPassRep = findViewById(R.id.txtPasswordRepeatReg);
-        EditText etPassRep = tipPassRep.getEditText();
+        tilPassRep = findViewById(R.id.txtPasswordRepeatReg);
+        EditText etPassRep = tilPassRep.getEditText();
         String passRepText = etPassRep.getText().toString().trim();
 
         tilMail = findViewById(R.id.txtEmailReg);
@@ -193,9 +193,11 @@ public class SharedEditRegister extends AppCompatActivity {
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                editarUsuario(v);
-                setResult(RESULT_OK);
-                finish();
+                if(editarUsuario(v)){
+                    setResult(RESULT_OK);
+                    finish();
+                }
+
             }
         });
 
@@ -267,13 +269,12 @@ public class SharedEditRegister extends AppCompatActivity {
         EditText etPass = tilPass.getEditText();
         String passText = etPass.getText().toString().trim();
 
-        EditText etPassRep = tipPassRep.getEditText();
+        EditText etPassRep = tilPassRep.getEditText();
         String passRepText = etPassRep.getText().toString().trim();
 
         String dateText = etDate.getText().toString();
 
 
-        // Comprobación de que los campos no estén vacíos
         if (userText.isEmpty()) {
             Toast.makeText(SharedEditRegister.this, "El usuario no puede estar vacío", Toast.LENGTH_SHORT).show();
             return false;
@@ -292,7 +293,7 @@ public class SharedEditRegister extends AppCompatActivity {
         } else if (dateText.isEmpty()) {
             Toast.makeText(SharedEditRegister.this, "Introduzca la fecha de nacimiento", Toast.LENGTH_SHORT).show();
             return false;
-        } else if (!imageOn) {
+        } else if (!imageOn && ivIconImage.getDrawable() == null) {
             Toast.makeText(SharedEditRegister.this, "Introduzca la imagen de perfil", Toast.LENGTH_SHORT).show();
             return false;
         } else if (!spinnerChecked()) {
@@ -303,6 +304,47 @@ public class SharedEditRegister extends AppCompatActivity {
         return true;
     }
 
+    private boolean isUserExists(String userName) {
+        // Obtener un objeto Cursor para realizar la consulta a la base de datos
+        Cursor cursor = getContentResolver().query(
+                UsuarioProvider.CONTENT_URI,  // URI del contenido del proveedor de usuarios
+                null,                         // Proyección: todas las columnas
+                UsuarioProvider.Usuarios.COL_USER + " = ?",  // Clausula WHERE: buscar por nombre de usuario
+                new String[]{userName},       // Argumentos de selección: el nombre de usuario
+                null                          // Sin ordenación
+        );
+
+        // Verificar si el cursor contiene algún resultado
+        boolean exists = (cursor != null && cursor.getCount() > 0);
+
+        // Cerrar el cursor para liberar los recursos
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        return exists;
+    }
+
+    private boolean isEmailExists(String email) {
+        // Obtener un objeto Cursor para realizar la consulta a la base de datos
+        Cursor cursor = getContentResolver().query(
+                UsuarioProvider.CONTENT_URI,  // URI del contenido del proveedor de usuarios
+                null,                         // Proyección: todas las columnas
+                UsuarioProvider.Usuarios.COL_EMAIL + " = ?",  // Clausula WHERE: buscar por correo electrónico
+                new String[]{email},           // Argumentos de selección: el correo electrónico
+                null                          // Sin ordenación
+        );
+
+        // Verificar si el cursor contiene algún resultado
+        boolean exists = (cursor != null && cursor.getCount() > 0);
+
+        // Cerrar el cursor para liberar los recursos
+        if (cursor != null) {
+            cursor.close();
+        }
+
+        return exists;
+    }
     public void eliminarUsuario(View view) {
         String selection = UsuarioProvider.Usuarios._ID + "=?";
         String[] selectionArgs = {String.valueOf(userId)};
@@ -316,7 +358,11 @@ public class SharedEditRegister extends AppCompatActivity {
             Toast.makeText(this, "Error al eliminar usuario", Toast.LENGTH_SHORT).show();
         }
     }
-    public void editarUsuario(View view) {
+    public boolean editarUsuario(View view) {
+        if (!areFieldsFilled()) {
+             return false;
+        }
+
         String newUser = tilUser.getEditText().getText().toString();
         String newEmail = tilMail.getEditText().getText().toString();
         String newPassword = tilPass.getEditText().getText().toString();
@@ -359,17 +405,26 @@ public class SharedEditRegister extends AppCompatActivity {
         } else {
             Toast.makeText(this, "Error al actualizar usuario", Toast.LENGTH_SHORT).show();
         }
+        return true;
     }
 
     private void mostrarDetallesUsuario(Usuario usuario) {
         tilUser.getEditText().setText(usuario.getUserName());
         tilMail.getEditText().setText(usuario.getUserMail());
         tilPass.getEditText().setText(usuario.getUserPass());
+        tilPassRep.getEditText().setText(usuario.getUserPass());
+
         etDate.setText(usuario.getUserBirth());
         if(usuario.getUserAcc()==1){
             spAcc.setText("Normal");
+            spAcc.setEnabled(false);
+            spAcc2.setEnabled(false);
+            switchBaja.setEnabled(false);
         }else if (usuario.getUserAcc()==0){
             spAcc.setText("Admin");
+            spAcc.setEnabled(true);
+            spAcc2.setEnabled(true);
+            switchBaja.setEnabled(true);
         }else{
             spAcc.setText("");
         }

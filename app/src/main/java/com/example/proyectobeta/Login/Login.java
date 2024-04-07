@@ -47,6 +47,7 @@ public class Login extends AppCompatActivity {
                 if (usuarioLog != null) {
                     intentList = new Intent(Login.this, List.class);
                     intentList.putExtra("userLog", usuarioLog);
+                    limpiarCampos();
                     startActivityForResult(intentList, REQUEST_LOGIN);
                 } else {
                     Toast.makeText(Login.this, "La cuenta no existe o la contraseña es incorrecta", Toast.LENGTH_SHORT).show();
@@ -61,10 +62,20 @@ public class Login extends AppCompatActivity {
             public void onClick(View v) {
                 intentRegister = new Intent(Login.this, SharedEditRegister.class);
                 intentRegister.putExtra("isRegistering",true);
-
+                limpiarCampos();
                 startActivityForResult(intentRegister, REQUEST_REGISTER);
             }
         });
+    }
+
+    public void limpiarCampos(){
+        tilUser = findViewById(R.id.txtUserLog);
+        EditText etUser = tilUser.getEditText();
+        etUser.setText("");
+
+        tilPass = findViewById(R.id.txtPassLog);
+        EditText etPass = tilPass.getEditText();
+        etPass.setText("");
     }
 
     private Usuario getAuthenticatedUser() {

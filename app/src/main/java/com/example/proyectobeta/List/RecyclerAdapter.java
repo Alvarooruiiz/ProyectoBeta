@@ -58,7 +58,11 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         holder.username.setText(userSelected.getUserName());
         holder.correo.setText(userSelected.getUserMail());
         holder.fechaNacimiento.setText(userSelected.getUserBirth());
-        holder.tipoCuenta.setText(String.valueOf(userSelected.getUserAcc()));
+        if(userSelected.getUserAcc()==1){
+            holder.tipoCuenta.setText("Normal");
+        }else{
+            holder.tipoCuenta.setText("Admin");
+        }
         byte[] imageData = userSelected.getUserImage();
         if (imageData != null) {
             Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
