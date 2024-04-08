@@ -19,6 +19,8 @@ import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ViewFlipper;
+
 import androidx.appcompat.widget.SearchView;
 
 
@@ -28,18 +30,21 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.proyectobeta.Carousel.Carousel;
 import com.example.proyectobeta.R;
 import com.example.proyectobeta.Usuario.UsuarioProvider;
 import com.google.android.material.search.SearchBar;
 
 import java.util.ArrayList;
 
-public class List extends AppCompatActivity {
+public class List extends AppCompatActivity implements OnAvatarClickListener,OnItemCardViewClickListener{
 
     private RecyclerAdapter adapter;
     private RecyclerView rvList;
     private Usuario userLog;
     private ArrayList<Usuario> listUsers;
+
+
 
     private SearchView searchView;
     private static final int REQUEST_EDIT_USER = 102;
@@ -126,6 +131,7 @@ public class List extends AppCompatActivity {
         }
 
         adapter = new RecyclerAdapter(this, listUsers, userLog);
+        adapter.setOnAvatarClickListener(this);
         rvList.setAdapter(adapter);
         rvList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
     }
@@ -156,4 +162,15 @@ public class List extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onAvatarClick(Usuario usuario) {
+        Intent intent = new Intent(List.this, Carousel.class);
+        startActivity(intent);
+    }
+
+
+    @Override
+    public void OnItemCardViewClick(Usuario usuario) {
+
+    }
 }

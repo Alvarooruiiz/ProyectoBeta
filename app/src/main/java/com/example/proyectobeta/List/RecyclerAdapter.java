@@ -36,6 +36,10 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
     private int position;
     private Usuario userLog;
 
+    private OnAvatarClickListener onAvatarClickListener;
+    private OnItemCardViewClickListener onItemCardViewClickListener;
+
+
     private static final int REQUEST_EDIT_USER = 123;
 
     public RecyclerAdapter(Context context, ArrayList<Usuario> usuarios, Usuario userLog) {
@@ -88,6 +92,15 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
                 }
             }
         });
+
+        holder.avatar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (onAvatarClickListener != null) {
+                    onAvatarClickListener.onAvatarClick(userSelected);
+                }
+            }
+        });
     }
 
 
@@ -114,6 +127,13 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerAdapter.ViewHo
         return null;
     }
 
+    public void setOnAvatarClickListener(OnAvatarClickListener listener) {
+        this.onAvatarClickListener = listener;
+    }
+
+    public void setOnItemCardViewClickListener(OnItemCardViewClickListener listener){
+        this.onItemCardViewClickListener = listener;
+    }
 
 
     public static class ViewHolder extends RecyclerView.ViewHolder{

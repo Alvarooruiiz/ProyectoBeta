@@ -29,7 +29,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.example.proyectobeta.List.Usuario;
 import com.example.proyectobeta.Login.Login;
-import com.example.proyectobeta.Register.DatePickerFragment;
+import com.example.proyectobeta.DatePicker.DatePickerFragment;
 import com.example.proyectobeta.Usuario.UsuarioProvider;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.google.android.material.textfield.TextInputLayout;
@@ -56,7 +56,6 @@ public class SharedEditRegister extends AppCompatActivity {
     private MaterialSwitch switchBaja;
 
 
-
     private AutoCompleteTextView spAcc;
     private TextInputLayout spAcc2;
 
@@ -72,7 +71,6 @@ public class SharedEditRegister extends AppCompatActivity {
     private Usuario userLog;
     private int typeAcc;
     private int userId;
-
 
 
     private static final int REQUEST_SELECT_IMAGE = 100;
@@ -144,14 +142,14 @@ public class SharedEditRegister extends AppCompatActivity {
             }
         }
 
-        if(isRegistering){
+        if (isRegistering) {
             btnDelete.setVisibility(View.GONE);
             btnEdit.setVisibility(View.GONE);
             constraintStatus.setVisibility(View.GONE);
             btnLoginLayout.setVisibility(View.VISIBLE);
             tvRegis.setVisibility(View.VISIBLE);
             tvTittle.setText("Registrarse");
-        }else{
+        } else {
             btnDelete.setVisibility(View.VISIBLE);
             btnEdit.setVisibility(View.VISIBLE);
             constraintStatus.setVisibility(View.VISIBLE);
@@ -193,7 +191,7 @@ public class SharedEditRegister extends AppCompatActivity {
         btnEdit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(editarUsuario(v)){
+                if (editarUsuario(v)) {
                     setResult(RESULT_OK);
                     finish();
                 }
@@ -230,7 +228,6 @@ public class SharedEditRegister extends AppCompatActivity {
             String mailText = etMail.getText().toString().trim();
 
             EditText etPass = tilPass.getEditText();
-            String passText = etPass.getText().toString().trim();
 
             ContentValues registro = new ContentValues();
             registro.put(UsuarioProvider.Usuarios.COL_USER, etUser.getText().toString().trim());
@@ -247,18 +244,24 @@ public class SharedEditRegister extends AppCompatActivity {
                 registro.put(UsuarioProvider.Usuarios.COL_ICON, imageData);
             }
 
-            ContentResolver cr = getContentResolver();
-            Uri newUri = cr.insert(UsuarioProvider.CONTENT_URI, registro);
-            if (newUri != null) {
-                Toast.makeText(SharedEditRegister.this, "Usuario guardado", Toast.LENGTH_SHORT).show();
-                loginLayout = new Intent(SharedEditRegister.this, Login.class);
-                startActivity(loginLayout);
-
+            if (isUserExists(userText)) {
+                Toast.makeText(SharedEditRegister.this, "El usuario ya existe", Toast.LENGTH_SHORT).show();
+            } else if (isEmailExists(mailText)) {
+                Toast.makeText(SharedEditRegister.this, "El correo ya existe", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(SharedEditRegister.this, "Error al guardar el usuario", Toast.LENGTH_SHORT).show();
+                ContentResolver cr = getContentResolver();
+                Uri newUri = cr.insert(UsuarioProvider.CONTENT_URI, registro);
+                if (newUri != null) {
+                    Toast.makeText(SharedEditRegister.this, "Usuario guardado", Toast.LENGTH_SHORT).show();
+                    loginLayout = new Intent(SharedEditRegister.this, Login.class);
+                    startActivity(loginLayout);
+                } else {
+                    Toast.makeText(SharedEditRegister.this, "Error al guardar el usuario", Toast.LENGTH_SHORT).show();
+                }
             }
         }
     }
+
     public boolean areFieldsFilled() {
         EditText etUser = tilUser.getEditText();
         String userText = etUser.getText().toString().trim();
@@ -305,19 +308,16 @@ public class SharedEditRegister extends AppCompatActivity {
     }
 
     private boolean isUserExists(String userName) {
-        // Obtener un objeto Cursor para realizar la consulta a la base de datos
         Cursor cursor = getContentResolver().query(
-                UsuarioProvider.CONTENT_URI,  // URI del contenido del proveedor de usuarios
-                null,                         // Proyección: todas las columnas
-                UsuarioProvider.Usuarios.COL_USER + " = ?",  // Clausula WHERE: buscar por nombre de usuario
-                new String[]{userName},       // Argumentos de selección: el nombre de usuario
-                null                          // Sin ordenación
+                UsuarioProvider.CONTENT_URI,
+                null,
+                UsuarioProvider.Usuarios.COL_USER + " = ?",
+                new String[]{userName},
+                null
         );
 
-        // Verificar si el cursor contiene algún resultado
         boolean exists = (cursor != null && cursor.getCount() > 0);
 
-        // Cerrar el cursor para liberar los recursos
         if (cursor != null) {
             cursor.close();
         }
@@ -326,25 +326,23 @@ public class SharedEditRegister extends AppCompatActivity {
     }
 
     private boolean isEmailExists(String email) {
-        // Obtener un objeto Cursor para realizar la consulta a la base de datos
         Cursor cursor = getContentResolver().query(
-                UsuarioProvider.CONTENT_URI,  // URI del contenido del proveedor de usuarios
-                null,                         // Proyección: todas las columnas
-                UsuarioProvider.Usuarios.COL_EMAIL + " = ?",  // Clausula WHERE: buscar por correo electrónico
-                new String[]{email},           // Argumentos de selección: el correo electrónico
-                null                          // Sin ordenación
+                UsuarioProvider.CONTENT_URI,
+                null,
+                UsuarioProvider.Usuarios.COL_EMAIL + " = ?",
+                new String[]{email},
+                null
         );
 
-        // Verificar si el cursor contiene algún resultado
         boolean exists = (cursor != null && cursor.getCount() > 0);
 
-        // Cerrar el cursor para liberar los recursos
         if (cursor != null) {
             cursor.close();
         }
 
         return exists;
     }
+
     public void eliminarUsuario(View view) {
         String selection = UsuarioProvider.Usuarios._ID + "=?";
         String[] selectionArgs = {String.valueOf(userId)};
@@ -358,9 +356,10 @@ public class SharedEditRegister extends AppCompatActivity {
             Toast.makeText(this, "Error al eliminar usuario", Toast.LENGTH_SHORT).show();
         }
     }
+
     public boolean editarUsuario(View view) {
         if (!areFieldsFilled()) {
-             return false;
+            return false;
         }
 
         String newUser = tilUser.getEditText().getText().toString();
@@ -373,9 +372,9 @@ public class SharedEditRegister extends AppCompatActivity {
         if (selectedOption.equals("Admin")) {
             newAccType = 0;
         }
-        int newStatus=0;
-        if(switchBaja.isChecked()){
-            newStatus=1;
+        int newStatus = 0;
+        if (switchBaja.isChecked()) {
+            newStatus = 1;
         }
 
         ContentValues values = new ContentValues();
@@ -393,6 +392,41 @@ public class SharedEditRegister extends AppCompatActivity {
             values.put(UsuarioProvider.Usuarios.COL_ICON, imageBytes);
         }
         values.put(UsuarioProvider.Usuarios.COL_STATUS, newStatus);
+
+        Cursor userCursor = getContentResolver().query(
+                UsuarioProvider.CONTENT_URI,
+                null,
+                UsuarioProvider.Usuarios.COL_USER + " = ? AND " + UsuarioProvider.Usuarios._ID + " != ?",
+                new String[]{newUser, String.valueOf(userId)},
+                null
+        );
+
+        Cursor emailCursor = getContentResolver().query(
+                UsuarioProvider.CONTENT_URI,
+                null,
+                UsuarioProvider.Usuarios.COL_EMAIL + " = ? AND " + UsuarioProvider.Usuarios._ID + " != ?",
+                new String[]{newEmail, String.valueOf(userId)},
+                null
+        );
+
+        boolean userExists = (userCursor != null && userCursor.getCount() > 0);
+        boolean emailExists = (emailCursor != null && emailCursor.getCount() > 0);
+
+        if (userCursor != null) {
+            userCursor.close();
+        }
+
+        if (emailCursor != null) {
+            emailCursor.close();
+        }
+
+        if (userExists) {
+            Toast.makeText(this, "El nombre de usuario ya existe", Toast.LENGTH_SHORT).show();
+            return false;
+        } else if (emailExists) {
+            Toast.makeText(this, "El correo electrónico ya existe", Toast.LENGTH_SHORT).show();
+            return false;
+        }
 
         String selection = UsuarioProvider.Usuarios._ID + "=?";
         String[] selectionArgs = {String.valueOf(userId)};
@@ -415,17 +449,17 @@ public class SharedEditRegister extends AppCompatActivity {
         tilPassRep.getEditText().setText(usuario.getUserPass());
 
         etDate.setText(usuario.getUserBirth());
-        if(usuario.getUserAcc()==1){
+        if (usuario.getUserAcc() == 1) {
             spAcc.setText("Normal");
             spAcc.setEnabled(false);
             spAcc2.setEnabled(false);
             switchBaja.setEnabled(false);
-        }else if (usuario.getUserAcc()==0){
+        } else if (usuario.getUserAcc() == 0) {
             spAcc.setText("Admin");
             spAcc.setEnabled(true);
             spAcc2.setEnabled(true);
             switchBaja.setEnabled(true);
-        }else{
+        } else {
             spAcc.setText("");
         }
 
@@ -445,6 +479,7 @@ public class SharedEditRegister extends AppCompatActivity {
         etDate.setText("");
         spAcc.setText("");
     }
+
     private boolean spinnerChecked() {
         String selectedOption = spAcc.getText().toString().trim();
 

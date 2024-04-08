@@ -19,7 +19,7 @@ public class UsuariosBBDD extends SQLiteOpenHelper {
             "user_mail TEXT, " +
             "user_birth TEXT, " +
             "user_acc INTEGER, " +
-            "user_image BLOB, " +
+            "user_image_url TEXT, " +
             "user_status INTEGER DEFAULT 0)";
     public UsuariosBBDD(@Nullable Context context, @Nullable String name, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, name, factory, DATABASE_VERSION);
