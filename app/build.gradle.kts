@@ -1,3 +1,5 @@
+import com.android.tools.r8.internal.v7
+
 plugins {
     alias(libs.plugins.androidApplication)
 }
@@ -34,9 +36,9 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.picasso)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
 
 }

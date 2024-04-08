@@ -3,28 +3,13 @@ package com.example.proyectobeta.List;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.EditText;
-import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ViewFlipper;
 
 import androidx.appcompat.widget.SearchView;
 
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -33,13 +18,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.proyectobeta.Carousel.Carousel;
 import com.example.proyectobeta.R;
 import com.example.proyectobeta.Usuario.UsuarioProvider;
-import com.google.android.material.search.SearchBar;
 
 import java.util.ArrayList;
 
 public class List extends AppCompatActivity implements OnAvatarClickListener,OnItemCardViewClickListener{
 
-    private RecyclerAdapter adapter;
+    private RecyclerAdapterList adapter;
     private RecyclerView rvList;
     private Usuario userLog;
     private ArrayList<Usuario> listUsers;
@@ -90,7 +74,7 @@ public class List extends AppCompatActivity implements OnAvatarClickListener,OnI
                 UsuarioProvider.Usuarios.COL_ICON,
                 UsuarioProvider.Usuarios.COL_STATUS
         };
-        Uri versionesUri = UsuarioProvider.CONTENT_URI;
+        Uri versionesUri = UsuarioProvider.CONTENT_URI_USUARIOS;
         ContentResolver cr = getContentResolver();
         Cursor cur = cr.query(versionesUri,
                 columnas,
@@ -130,7 +114,7 @@ public class List extends AppCompatActivity implements OnAvatarClickListener,OnI
             cur.close();
         }
 
-        adapter = new RecyclerAdapter(this, listUsers, userLog);
+        adapter = new RecyclerAdapterList(this, listUsers, userLog);
         adapter.setOnAvatarClickListener(this);
         rvList.setAdapter(adapter);
         rvList.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
@@ -138,19 +122,21 @@ public class List extends AppCompatActivity implements OnAvatarClickListener,OnI
 
     private void filtrar(String texto) {
         ArrayList<Usuario> usuariosFiltrados = new ArrayList<>();
-        if (texto.isEmpty()) {
-            usuariosFiltrados.addAll(listUsers);
-        } else {
-            texto = texto.toLowerCase();
-            for (Usuario usuario : listUsers) {
-                if (usuario.getUserName().toLowerCase().contains(texto) ||
-                        usuario.getUserMail().toLowerCase().contains(texto) ||
-                        usuario.getUserBirth().toLowerCase().contains(texto)) {
-                    usuariosFiltrados.add(usuario);
+        if (listUsers != null) {
+            if (texto.isEmpty()) {
+                usuariosFiltrados.addAll(listUsers);
+            } else {
+                texto = texto.toLowerCase();
+                for (Usuario usuario : listUsers) {
+                    if (usuario.getUserName().toLowerCase().contains(texto) ||
+                            usuario.getUserMail().toLowerCase().contains(texto) ||
+                            usuario.getUserBirth().toLowerCase().contains(texto)) {
+                        usuariosFiltrados.add(usuario);
+                    }
                 }
             }
         }
-        adapter = new RecyclerAdapter(this, usuariosFiltrados, userLog);
+        adapter = new RecyclerAdapterList(this, usuariosFiltrados, userLog);
         rvList.setAdapter(adapter);
     }
 

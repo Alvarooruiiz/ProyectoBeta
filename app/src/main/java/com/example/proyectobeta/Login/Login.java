@@ -14,7 +14,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.proyectobeta.List.List;
 import com.example.proyectobeta.List.Usuario;
 import com.example.proyectobeta.R;
-import com.example.proyectobeta.SharedEditRegister;
+import com.example.proyectobeta.EditRegis.SharedEditRegister;
 import com.example.proyectobeta.Usuario.UsuarioProvider;
 import com.google.android.material.textfield.TextInputLayout;
 
@@ -97,7 +97,7 @@ public class Login extends AppCompatActivity {
         String selection = UsuarioProvider.Usuarios.COL_USER + " = ?";
         String[] selectionArgs = {userText};
 
-        Cursor cursor = getContentResolver().query(UsuarioProvider.CONTENT_URI, projection, selection, selectionArgs, null);
+        Cursor cursor = getContentResolver().query(UsuarioProvider.CONTENT_URI_USUARIOS, projection, selection, selectionArgs, null);
 
         if (cursor != null && cursor.moveToFirst()) {
             int userId = cursor.getInt(cursor.getColumnIndexOrThrow(UsuarioProvider.Usuarios._ID));

@@ -10,20 +10,24 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.example.proyectobeta.R;
+import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 public class CarouselViewPagerAdapter extends PagerAdapter {
 
     private Context context;
     private LayoutInflater layoutInflater;
-    private Integer [] images = {R.drawable.slide1,R.drawable.slide2,R.drawable.slide3};
+    private List<String> imageUrls;
 
-    public CarouselViewPagerAdapter(Context context) {
+    public CarouselViewPagerAdapter(Context context, List<String> imageUrls) {
         this.context = context;
+        this.imageUrls = imageUrls;
     }
 
     @Override
     public int getCount() {
-        return images.length;
+        return imageUrls.size();
     }
 
     @Override
@@ -33,25 +37,19 @@ public class CarouselViewPagerAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, final int position) {
+        layoutInflater = LayoutInflater.from(context);
+        View view = layoutInflater.inflate(R.layout.carousel_view_layout, container, false);
+        ImageView imageView = view.findViewById(R.id.imageView);
 
-        layoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View view = layoutInflater.inflate(R.layout.carousel_view_layout, null);
-        ImageView imageView = (ImageView) view.findViewById(R.id.imageView);
-        imageView.setImageResource(images[position]);
+        // Utiliza una biblioteca como Picasso o Glide para cargar la imagen desde la URL
+        Picasso.get().load(imageUrls.get(position)).into(imageView);
 
-
-        ViewPager vp = (ViewPager) container;
-        vp.addView(view, 0);
+        container.addView(view);
         return view;
-
     }
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
-
-        ViewPager vp = (ViewPager) container;
-        View view = (View) object;
-        vp.removeView(view);
-
+        container.removeView((View) object);
     }
 }

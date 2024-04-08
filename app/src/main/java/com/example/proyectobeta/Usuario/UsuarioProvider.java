@@ -5,6 +5,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.UriMatcher;
 import android.database.Cursor;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.provider.BaseColumns;
@@ -15,8 +16,15 @@ import androidx.annotation.Nullable;
 
 public class UsuarioProvider extends ContentProvider {
     private static final String AUTHORITY = "com.example.proyectobeta.usuario";
-    private static final String URI = "content://" + AUTHORITY + "/usuarios";
-    public static final Uri CONTENT_URI = Uri.parse(URI);
+
+    private static final String USUARIOS_PATH = "usuarios";
+    private static final String IMAGENES_PATH = "imagenes";
+
+    private static final String URI_USUARIOS = "content://" + AUTHORITY + "/" + USUARIOS_PATH;
+    private static final String URI_IMAGENES = "content://" + AUTHORITY + "/" + IMAGENES_PATH;
+
+    public static final Uri CONTENT_URI_USUARIOS = Uri.parse(URI_USUARIOS);
+    public static final Uri CONTENT_URI_IMAGENES = Uri.parse(URI_IMAGENES);
 
     // Definimos el objeto UriMatcher
     private static final int USUARIOS = 1;
@@ -25,14 +33,22 @@ public class UsuarioProvider extends ContentProvider {
 
     // Base de datos
     public UsuariosBBDD usuarioBBDD;
-    public static final String BD_NOMBRE = "DBUSUARIOS";
+    public static final String BD_NOMBRE = "DBUSUARIOS_V2";
     public static final int BD_VERSION = 2;
     public static final String TABLA_USUARIOS = "Usuarios";
+    public static final String TABLA_IMAGENES = "Imagenes";
+
+    private static final int IMAGENES = 3;
+    private static final int IMAGENES_ID = 4;
+
+
 
     static {
         URI_MATCHER = new UriMatcher(UriMatcher.NO_MATCH);
         URI_MATCHER.addURI(AUTHORITY,"usuarios", USUARIOS);
         URI_MATCHER.addURI(AUTHORITY,"usuarios/#", USUARIOS_ID);
+        URI_MATCHER.addURI(AUTHORITY,"imagenes", IMAGENES);
+        URI_MATCHER.addURI(AUTHORITY,"imagenes/#", IMAGENES_ID);
     }
 
     @Override
@@ -44,15 +60,34 @@ public class UsuarioProvider extends ContentProvider {
     @Nullable
     @Override
     public Cursor query(@NonNull Uri uri, @Nullable String[] projection, @Nullable String selection, @Nullable String[] selectionArgs, @Nullable String sortOrder) {
-        String where = selection;
-        if(URI_MATCHER.match(uri) == USUARIOS_ID){
-            where = "_id=" + uri.getLastPathSegment();
-        }
         SQLiteDatabase db = usuarioBBDD.getWritableDatabase();
+        Cursor cursor;
 
-        Cursor c = db.query(TABLA_USUARIOS,projection,where,selectionArgs,null,null,sortOrder);
+        int match = URI_MATCHER.match(uri);
+        switch (match) {
+            case USUARIOS:
+                cursor = db.query(TABLA_USUARIOS, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            case USUARIOS_ID:
+                String userId = uri.getLastPathSegment();
+                String userSelection = "_id=?";
+                String[] userSelectionArgs = new String[]{userId};
+                cursor = db.query(TABLA_USUARIOS, projection, userSelection, userSelectionArgs, null, null, sortOrder);
+                break;
+            case IMAGENES:
+                cursor = db.query(TABLA_IMAGENES, projection, selection, selectionArgs, null, null, sortOrder);
+                break;
+            case IMAGENES_ID:
+                String imageId = uri.getLastPathSegment();
+                String imageSelection = "_id=?";
+                String[] imageSelectionArgs = new String[]{imageId};
+                cursor = db.query(TABLA_IMAGENES, projection, imageSelection, imageSelectionArgs, null, null, sortOrder);
+                break;
+            default:
+                throw new IllegalArgumentException("URI desconocido: " + uri);
+        }
 
-        return c;
+        return cursor;
     }
 
     @Nullable
@@ -62,61 +97,95 @@ public class UsuarioProvider extends ContentProvider {
         switch (match){
             case USUARIOS:
                 return "vnd.android.cursor.dir/vnd.com.example.proyectobeta.usuario";
-
             case USUARIOS_ID:
                 return "vnd.android.cursor.item/vnd.example.proyectobeta.usuario";
+            case IMAGENES:
+                return "vnd.android.cursor.dir/vnd.com.example.proyectobeta.imagen";
+            case IMAGENES_ID:
+                return "vnd.android.cursor.item/vnd.com.example.proyectobeta.imagen";
+            default:
+                throw new IllegalArgumentException("URI desconocido: " + uri);
         }
-
-        return null;
 
     }
 
     @Nullable
     @Override
     public Uri insert(@NonNull Uri uri, @Nullable ContentValues values) {
-        long regId;
         SQLiteDatabase db = usuarioBBDD.getWritableDatabase();
-
-        regId = db.insert(TABLA_USUARIOS,null,values);
-
-        Uri newUri = ContentUris.withAppendedId(CONTENT_URI,regId);
-
-        return newUri;
+        long regId = -1;
+        switch (URI_MATCHER.match(uri)) {
+            case USUARIOS:
+                regId = db.insert(TABLA_USUARIOS, null, values);
+                break;
+            case IMAGENES:
+                regId = db.insert(TABLA_IMAGENES, null, values);
+                break;
+            default:
+                throw new IllegalArgumentException("URI desconocido: " + uri);
+        }
+        if (regId != -1) {
+            Uri newUri = ContentUris.withAppendedId(uri, regId);
+            return newUri;
+        } else {
+            throw new SQLException("Falla al insertar fila en: " + uri);
+        }
     }
 
     @Override
     public int delete(Uri uri, String selection, String[] selectionArgs) {
-        int cont;
-
-        String where = selection;
-        if(URI_MATCHER.match(uri) == USUARIOS_ID) {
-            where = "_id" + uri.getLastPathSegment();
-        }
         SQLiteDatabase db = usuarioBBDD.getWritableDatabase();
+        int cont;
+        switch (URI_MATCHER.match(uri)) {
+            case USUARIOS:
+                // Aquí se maneja la eliminación de todos los usuarios
+                cont = db.delete(TABLA_USUARIOS, selection, selectionArgs);
+                break;
+            case USUARIOS_ID:
+                // Aquí se maneja la eliminación de un usuario específico
+                String userId = uri.getLastPathSegment();
 
-        cont = db.delete(TABLA_USUARIOS,where,selectionArgs);
+                String whereImages = "user_id=?";
+                String[] whereImagesArgs = new String[]{userId};
+                db.delete(TABLA_IMAGENES, whereImages, whereImagesArgs);
 
+                String whereUser = "_id=?";
+                String[] whereUserArgs = new String[]{userId};
+                cont = db.delete(TABLA_USUARIOS, whereUser, whereUserArgs);
+                break;
+            case IMAGENES_ID:
+                // Aquí se maneja la eliminación de una imagen específica
+                String whereImagenes = "_id=" + uri.getLastPathSegment(); // Agrega el operador de igualdad
+                cont = db.delete(TABLA_IMAGENES, whereImagenes, selectionArgs);
+                break;
+            default:
+                throw new IllegalArgumentException("URI desconocido: " + uri);
+        }
         return cont;
     }
 
     @Override
     public int update(Uri uri, ContentValues values, String selection, String[] selectionArgs) {
-        int cont;
-
-        String where = selection;
-        if(URI_MATCHER.match(uri) == USUARIOS_ID) {
-            where = "_id" + uri.getLastPathSegment();
-        }
         SQLiteDatabase db = usuarioBBDD.getWritableDatabase();
-
-        cont = db.update(TABLA_USUARIOS,values,where,selectionArgs);
-
+        int cont;
+        switch (URI_MATCHER.match(uri)) {
+            case USUARIOS_ID:
+                String whereUser = "_id=" + uri.getLastPathSegment(); // Agrega el operador de igualdad
+                cont = db.update(TABLA_USUARIOS, values, whereUser, selectionArgs);
+                break;
+            case IMAGENES_ID:
+                String whereImagenes = "_id=" + uri.getLastPathSegment(); // Agrega el operador de igualdad
+                cont = db.update(TABLA_IMAGENES, values, whereImagenes, selectionArgs);
+                break;
+            default:
+                throw new IllegalArgumentException("URI desconocido: " + uri);
+        }
         return cont;
     }
 
+
     public UsuarioProvider(){}
 
-    // Clase interna para declarar las constantes de columna
     public static final class Usuarios implements BaseColumns {
         private Usuarios(){}
 
@@ -129,6 +198,13 @@ public class UsuarioProvider extends ContentProvider {
         public static final String COL_ICON = "user_image";
         public static final String COL_STATUS = "user_status";
 
+    }
 
+    public static final class Imagenes implements BaseColumns {
+        private Imagenes(){}
+
+        // Nombre de columnas
+        public static final String COL_USER_ID = "user_id";
+        public static final String COL_IMAGE_URL = "image_url";
     }
 }

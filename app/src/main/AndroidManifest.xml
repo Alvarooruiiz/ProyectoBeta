@@ -21,9 +21,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".List.List"></activity>
-        <activity android:name=".SharedEditRegister"></activity>
-        <activity android:name=".Carousel.Carousel"></activity>
+        <activity android:name=".List.List" />
+        <activity
+            android:name=".EditRegis.SharedEditRegister"
+            android:windowSoftInputMode="adjustPan" />
+        <activity android:name=".Carousel.Carousel" />
         <provider
             android:authorities="com.example.proyectobeta.usuario"
             android:name=".Usuario.UsuarioProvider"
@@ -34,5 +36,6 @@
             android:exported="false" />
     </application>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
 </manifest>

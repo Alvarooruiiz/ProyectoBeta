@@ -100,15 +100,15 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintStatus"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="301dp"
+        android:layout_height="198dp"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="3.1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.792"
-        android:visibility="gone">
+        app:layout_constraintVertical_bias="0.0">
 
         <TextView
             android:layout_width="wrap_content"
@@ -116,10 +116,10 @@
             android:text="Dar de baja"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.137"
+            app:layout_constraintHorizontal_bias="0.139"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.407" />
+            app:layout_constraintVertical_bias="0.273" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/switchBaja"
@@ -132,14 +132,14 @@
             app:layout_constraintHorizontal_bias="0.133"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="1.0" />
+            app:layout_constraintVertical_bias="1." />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <EditText
         android:id="@+id/etDate"
-        android:layout_width="197dp"
-        android:layout_height="50dp"
+        android:layout_width="105dp"
+        android:layout_height="43dp"
         android:editable="false"
         android:focusable="false"
         android:hint="@string/fecha"
@@ -147,10 +147,10 @@
         android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.8"
+        app:layout_constraintHorizontal_bias="0.055"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.651" />
+        app:layout_constraintVertical_bias="0.636" />
 
     <ImageView
         android:id="@+id/ivIconImage"
@@ -163,6 +163,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.744" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvImagesUser"
+        android:layout_width="197dp"
+        android:layout_height="52dp"
+        android:orientation="horizontal"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.805"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.742" />
 
     <Button
         android:id="@+id/btnRegister"
@@ -258,7 +271,7 @@
         app:layout_constraintHorizontal_bias="0.82"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.745">
+        app:layout_constraintVertical_bias="0.636">
 
         <AutoCompleteTextView
             android:id="@+id/spAcc"

@@ -10,12 +10,16 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.example.proyectobeta.R;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Carousel extends AppCompatActivity {
 
     ViewPager viewPager;
     LinearLayout sliderDotspanel;
     private int dotscount;
     private ImageView[] dots;
+    private ArrayList<String> imageUrls;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +30,9 @@ public class Carousel extends AppCompatActivity {
 
         sliderDotspanel = (LinearLayout) findViewById(R.id.SliderDots);
 
-        CarouselViewPagerAdapter viewPagerAdapter = new CarouselViewPagerAdapter(this);
+        imageUrls = obtenerListaDeUrlsDeImagenes();
+
+        CarouselViewPagerAdapter viewPagerAdapter = new CarouselViewPagerAdapter(this,imageUrls);
 
         viewPager.setAdapter(viewPagerAdapter);
 
@@ -70,6 +76,16 @@ public class Carousel extends AppCompatActivity {
 
             }
         });
+
+    }
+
+    private ArrayList<String> obtenerListaDeUrlsDeImagenes() {
+        ArrayList<String> urls = new ArrayList<>();
+        urls.add(String.valueOf(R.drawable.slide1));
+        urls.add(String.valueOf(R.drawable.slide2));
+        urls.add(String.valueOf(R.drawable.slide3));
+        urls.add(String.valueOf(R.drawable.slide3));
+        return urls;
 
     }
 
