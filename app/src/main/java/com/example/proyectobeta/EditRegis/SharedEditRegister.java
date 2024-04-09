@@ -321,11 +321,12 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
 
                     Uri imagesUri = UsuarioProvider.CONTENT_URI_IMAGENES;
                     getContentResolver().insert(imagesUri, imageValues);
-                    Toast.makeText(SharedEditRegister.this, "Usuario registrado exitosamente", Toast.LENGTH_SHORT).show();
-                    createNotificationChannel();
-                    createNotification(userText);
-                    return true;
                 }
+
+                Toast.makeText(SharedEditRegister.this, "Usuario registrado exitosamente", Toast.LENGTH_SHORT).show();
+                createNotificationChannel();
+                createNotification(userText);
+                return true;
             } else {
                 Toast.makeText(SharedEditRegister.this, "Error al guardar el usuario", Toast.LENGTH_SHORT).show();
                 return false;
@@ -557,6 +558,7 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
         String[] selectionArgs = {String.valueOf(userId)};
 
         int rowsUpdated = getContentResolver().update(uri, values, selection, selectionArgs);
+        actualizarImagenesUsuario(userId);
 
         if (rowsUpdated > 0) {
             Toast.makeText(this, "Usuario actualizado correctamente", Toast.LENGTH_SHORT).show();
@@ -578,15 +580,15 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
             spAcc.setText("Normal");
             spAcc.setEnabled(false);
             spAcc2.setEnabled(false);
-            switchBaja.setEnabled(false);
         } else if (usuario.getUserAcc() == 0) {
             spAcc.setText("Admin");
             spAcc.setEnabled(true);
             spAcc2.setEnabled(true);
-            switchBaja.setEnabled(true);
         } else {
             spAcc.setText("");
         }
+
+        switchBaja.setEnabled(userLog.getUserAcc() != 1);
 
         if (usuario.getUserImage() != null) {
             String imageUriString = new String(usuario.getUserImage());
@@ -595,9 +597,82 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
 
 
         switchBaja.setChecked(usuario.getUserStatus() == 1);
-
+        cargarImagenesUsuario(usuario.getId());
     }
 
+    private void actualizarImagenesUsuario(int userId) {
+        // Obtener las imágenes almacenadas del usuario
+        Cursor cursor = getContentResolver().query(
+                UsuarioProvider.CONTENT_URI_IMAGENES,
+                null,
+                UsuarioProvider.Imagenes.COL_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)},
+                null
+        );
+
+        ArrayList<Integer> imageIds = new ArrayList<>();
+
+        // Verificar si hay imágenes almacenadas para este usuario
+        if (cursor != null) {
+            while (cursor.moveToNext()) {
+                @SuppressLint("Range") int imageId = cursor.getInt(cursor.getColumnIndex(UsuarioProvider.Imagenes._ID));
+                imageIds.add(imageId);
+            }
+            cursor.close();
+        }
+
+        // Eliminar las imágenes que ya no están presentes en la lista de imágenes del usuario
+        for (int i = 0; i < imageIds.size(); i++) {
+            if (!imagesList.contains(imageIds.get(i))) {
+                String selection = UsuarioProvider.Imagenes._ID + "=?";
+                String[] selectionArgs = {String.valueOf(imageIds.get(i))};
+                getContentResolver().delete(UsuarioProvider.CONTENT_URI_IMAGENES, selection, selectionArgs);
+            }
+        }
+
+        // Insertar las nuevas imágenes que se han agregado
+        for (Bitmap bitmap : imagesList) {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            byte[] imageData = baos.toByteArray();
+
+            ContentValues imageValues = new ContentValues();
+            imageValues.put(UsuarioProvider.Imagenes.COL_USER_ID, userId); // Asociar la imagen con el ID del usuario
+            imageValues.put(UsuarioProvider.Imagenes.COL_IMAGE_URL, imageData);
+
+            getContentResolver().insert(UsuarioProvider.CONTENT_URI_IMAGENES, imageValues);
+        }
+    }
+
+    private void cargarImagenesUsuario(int userId) {
+        // Limpiar la lista de imágenes antes de cargar las nuevas
+        imagesList.clear();
+
+        // Obtener las imágenes del usuario de la base de datos
+        Cursor cursor = getContentResolver().query(
+                UsuarioProvider.CONTENT_URI_IMAGENES,
+                null,
+                UsuarioProvider.Imagenes.COL_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)},
+                null
+        );
+
+        // Verificar si hay imágenes almacenadas
+        if (cursor != null && cursor.getCount() > 0) {
+            // Iterar a través del cursor para obtener las imágenes
+            while (cursor.moveToNext()) {
+                @SuppressLint("Range") byte[] imageData = cursor.getBlob(cursor.getColumnIndex(UsuarioProvider.Imagenes.COL_IMAGE_URL));
+                if (imageData != null) {
+                    // Convertir los datos de imagen en un bitmap
+                    Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                    // Agregar el bitmap a la lista de imágenes
+                    imagesList.add(bitmap);
+                }
+            }
+            cursor.close();
+            recyclerAdapterImages.notifyDataSetChanged();
+        }
+    }
     private void limpiarCampos() {
         tilUser.getEditText().setText("");
         tilMail.getEditText().setText("");

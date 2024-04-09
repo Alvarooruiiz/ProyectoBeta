@@ -42,7 +42,6 @@ public class CarouselViewPagerAdapter extends PagerAdapter {
         View view = layoutInflater.inflate(R.layout.carousel_view_layout, container, false);
         ImageView imageView = view.findViewById(R.id.imageView);
 
-        // Setear el bitmap en el ImageView
         imageView.setImageBitmap(imageBitmaps.get(position));
 
         container.addView(view);

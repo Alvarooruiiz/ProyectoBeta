@@ -106,11 +106,13 @@ public class RecyclerAdapterList extends RecyclerView.Adapter<RecyclerAdapterLis
                 }
             }
         });
+        holder.checkBox.setChecked(userSelected.isChecked());
 
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 usuarios.get(position).setChecked(isChecked);
+                userSelected.setChecked(isChecked);
                 if (isChecked) {
                     usuariosMarcados.add(usuarios.get(position));
                 } else {
@@ -130,7 +132,12 @@ public class RecyclerAdapterList extends RecyclerView.Adapter<RecyclerAdapterLis
         notifyItemChanged(position);
     }
 
-
+    public void clearSelection() {
+        for (Usuario usuario : usuarios) {
+            usuario.isChecked();
+        }
+        notifyDataSetChanged();
+    }
 
     @Override
     public int getItemCount() {

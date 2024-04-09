@@ -54,6 +54,9 @@ public class List extends AppCompatActivity implements OnAvatarClickListener, On
         setContentView(R.layout.list_layout);
         Intent intent = getIntent();
         userLog = (Usuario) intent.getSerializableExtra("userLog");
+
+
+
         usuariosMarcados = new ArrayList<>(); // Inicializar la lista aquí
 
         adapter = new RecyclerAdapterList(this, new ArrayList<>(), userLog,usuariosMarcados); // Adaptador vacío inicialmente
@@ -253,8 +256,11 @@ public class List extends AppCompatActivity implements OnAvatarClickListener, On
 
         listUsers.removeAll(usuariosMarcados);
         adapter.notifyDataSetChanged();
-
-
+        adapter.clearSelection();
     }
+
+
+
+
 
 }
