@@ -151,9 +151,14 @@ public class UsuarioProvider extends ContentProvider {
                 String[] whereUserArgs = new String[]{userId};
                 cont = db.delete(TABLA_USUARIOS, whereUser, whereUserArgs);
                 break;
+            case IMAGENES:
+                cont = db.delete(TABLA_IMAGENES, selection, selectionArgs);
+                break;
             case IMAGENES_ID:
-                String whereImagenes = "_id=" + uri.getLastPathSegment(); // Agrega el operador de igualdad
-                cont = db.delete(TABLA_IMAGENES, whereImagenes, selectionArgs);
+                String imageId = uri.getLastPathSegment();
+                String whereImagenes = Imagenes._ID + "=?";
+                String[] whereImagenesArgs = new String[]{imageId};
+                cont = db.delete(TABLA_IMAGENES, whereImagenes, whereImagenesArgs);
                 break;
             default:
                 throw new IllegalArgumentException("URI desconocido delete: " + uri);

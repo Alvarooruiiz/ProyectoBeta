@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
@@ -33,7 +34,9 @@ public class Carousel extends AppCompatActivity {
         setContentView(R.layout.carousel_style_layout);
 
         userId = getIntent().getIntExtra("userId", -1);
+
         imageBitmaps = obtenerListaDeBitmapsDeImagenes(userId);
+
 
         viewPager = (ViewPager) findViewById(R.id.viewPager);
 

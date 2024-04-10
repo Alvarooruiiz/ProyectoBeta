@@ -28,6 +28,8 @@ public class Login extends AppCompatActivity {
     private TextInputLayout tilPass;
     private static final int REQUEST_REGISTER = 1;
     private static final int REQUEST_LOGIN = 2;
+    static Usuario usuarioLog;
+    int cont=0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +41,7 @@ public class Login extends AppCompatActivity {
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Usuario usuarioLog = getAuthenticatedUser();
+                usuarioLog = getAuthenticatedUser();
 
                 if (usuarioLog != null) {
                     intentList = new Intent(Login.this, List.class);
@@ -115,5 +117,14 @@ public class Login extends AppCompatActivity {
             }
         }
         return null;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        if(cont==0){
+            Toast.makeText(this, "Estas seguro que desea salir de la aplicaión", Toast.LENGTH_SHORT).show();
+            cont=+1;
+        }
     }
 }

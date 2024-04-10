@@ -6,6 +6,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.app.ListActivity;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationChannelGroup;
@@ -103,6 +104,8 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
     private static final int REQUEST_SELECT_IMAGE = 100;
     private static final int REQUEST_IMAGE_CAPTURE = 101;
     private static final int REQUEST_LOGIN = 102;
+    private static final int REQUEST_EDIT_USER = 123;
+
 
     private ArrayList<String> imageUrls = new ArrayList<>();
 
@@ -241,9 +244,12 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
             @Override
             public void onClick(View v) {
                 if (editarUsuario(v)) {
-                    setResult(RESULT_OK);
-                    finish();
+//                    Toast.makeText(SharedEditRegister.this, ""+userLog.getUserAcc(), Toast.LENGTH_SHORT).show();
+                    Intent resultIntent = new Intent();
+                    resultIntent.putExtra("userLogUpdated", userLog);
+                    setResult(RESULT_OK, resultIntent);
                 }
+                finish();
 
             }
         });
@@ -265,6 +271,7 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
                 if (registerUser()) {
                     loginLayout = new Intent(SharedEditRegister.this, Login.class);
                     startActivityForResult(loginLayout, REQUEST_LOGIN);
+                    finish();
                 }
             }
         });
@@ -288,10 +295,21 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
             registro.put(UsuarioProvider.Usuarios.COL_DATE, etDate.getText().toString());
             registro.put(UsuarioProvider.Usuarios.COL_ACCTYPE, typeAccount);
 
-            if (imageOn) {
-                Bitmap bitmap = ((BitmapDrawable) ivIconImage.getDrawable()).getBitmap();
+            Bitmap firstImage = null;
+
+            // Verifica si hay al menos una imagen seleccionada
+            if (!imagesList.isEmpty()) {
+                // Obtiene la primera imagen de la lista
+                firstImage = imagesList.get(0);
+            } else {
+                // Si no hay ninguna imagen seleccionada, puedes mostrar un mensaje de error o manejar la situación según sea necesario
+                Toast.makeText(this, "No has seleccionado ninguna imagen.", Toast.LENGTH_SHORT).show();
+                return false; // Retorna falso para indicar que el registro no se puede completar sin una imagen
+            }
+
+            if (firstImage != null) {
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                firstImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
                 byte[] imageData = baos.toByteArray();
                 registro.put(UsuarioProvider.Usuarios.COL_ICON, imageData);
             }
@@ -316,7 +334,7 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
                     byte[] imageData = baos.toByteArray();
 
                     ContentValues imageValues = new ContentValues();
-                    imageValues.put(UsuarioProvider.Imagenes.COL_USER_ID, userId); // Asociar la imagen con el ID del usuario
+                    imageValues.put(UsuarioProvider.Imagenes.COL_USER_ID, userId);
                     imageValues.put(UsuarioProvider.Imagenes.COL_IMAGE_URL, imageData);
 
                     Uri imagesUri = UsuarioProvider.CONTENT_URI_IMAGENES;
@@ -324,8 +342,7 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
                 }
 
                 Toast.makeText(SharedEditRegister.this, "Usuario registrado exitosamente", Toast.LENGTH_SHORT).show();
-                createNotificationChannel();
-                createNotification(userText);
+                generateNotification(userText);
                 return true;
             } else {
                 Toast.makeText(SharedEditRegister.this, "Error al guardar el usuario", Toast.LENGTH_SHORT).show();
@@ -335,38 +352,53 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
         return false;
     }
 
-    private void createNotificationChannel() {
+    private void generateNotification(String nombre) {
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Noticacion";
-            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT);
-            NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            // Create the notification channel group
+            NotificationChannelGroup group = new NotificationChannelGroup("group_id", "Group Name");
+            notificationManager.createNotificationChannelGroup(group);
+
+            // Create the notification channel
+            NotificationChannel notificationChannel = new NotificationChannel("NOTIFICATION_URGENT_ID", "My Notifications", NotificationManager.IMPORTANCE_HIGH);
+            notificationChannel.setDescription("Channel description");
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.setVibrationPattern(new long[]{0, 1000, 500, 1000});
+            notificationChannel.enableVibration(true);
+
+            // Associate the channel with the group
+            notificationChannel.setGroup("group_id");
+
+            assert notificationManager != null;
             notificationManager.createNotificationChannel(notificationChannel);
         }
+
+        // Build and display the notification
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, "NOTIFICATION_URGENT_ID");
+        notificationBuilder.setAutoCancel(true)
+                .setDefaults(Notification.DEFAULT_ALL)
+                .setWhen(System.currentTimeMillis())
+                .setSmallIcon(R.drawable.ic_launcher_background)
+                .setTicker("Notificaión")
+                .setContentTitle("Registro")
+                .setContentIntent(onClick())
+                .setContentText("Se ha registrado " + nombre + " exitosamente")
+                .setContentInfo("New");
+
+        Random random = new Random();
+        int m = random.nextInt(9999 - 1000) + 1000;
+        assert notificationManager != null;
+        notificationManager.notify(m, notificationBuilder.build());
     }
-
-    private void createNotification(String nombre) {
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(), CHANNEL_ID);
-        builder.setSmallIcon(R.drawable.user_icon);
-        builder.setContentTitle("Proyecto Beta");
-        builder.setContentText("Usuario " + nombre + " registrado con éxito");
-        builder.setColor(Color.BLUE);
-        builder.setPriority(NotificationCompat.PRIORITY_DEFAULT);
-        builder.setLights(Color.MAGENTA, 1000, 1000);
-        builder.setVibrate(new long[]{1000, 1000, 1000, 1000, 1000});
-        builder.setDefaults(Notification.DEFAULT_SOUND);
-
-        NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(getApplicationContext());
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        notificationManagerCompat.notify(NOTIFICACION_ID, builder.build());
+    public PendingIntent onClick(){
+        Intent notificationIntent = new Intent(this,
+                Login.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        return PendingIntent.getActivity(this, 0,
+                notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
     public boolean areFieldsFilled() {
         EditText etUser = tilUser.getEditText();
@@ -499,6 +531,10 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
             newStatus = 1;
         }
 
+        boolean isChangingOwnAccountType = (userId == userLog.getId() && userLog.getUserAcc() != newAccType);
+
+
+
         ContentValues values = new ContentValues();
         values.put(UsuarioProvider.Usuarios.COL_USER, newUser);
         values.put(UsuarioProvider.Usuarios.COL_EMAIL, newEmail);
@@ -506,12 +542,19 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
         values.put(UsuarioProvider.Usuarios.COL_DATE, newDate);
         values.put(UsuarioProvider.Usuarios.COL_ACCTYPE, newAccType);
 
-        if (imageOn) {
-            Bitmap bitmap = ((BitmapDrawable) ivIconImage.getDrawable()).getBitmap();
+        Bitmap firstImage = null;
+
+        // Verifica si hay al menos una imagen seleccionada
+        if (imageOn && !imagesList.isEmpty()) {
+            // Obtiene la primera imagen de la lista
+            firstImage = imagesList.get(0);
+        }
+
+        if (firstImage != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            byte[] imageBytes = baos.toByteArray();
-            values.put(UsuarioProvider.Usuarios.COL_ICON, imageBytes);
+            firstImage.compress(Bitmap.CompressFormat.PNG, 100, baos);
+            byte[] imageData = baos.toByteArray();
+            values.put(UsuarioProvider.Usuarios.COL_ICON, imageData);
         }
         values.put(UsuarioProvider.Usuarios.COL_STATUS, newStatus);
 
@@ -560,9 +603,16 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
         int rowsUpdated = getContentResolver().update(uri, values, selection, selectionArgs);
         actualizarImagenesUsuario(userId);
 
+
+        if (isChangingOwnAccountType) {
+            userLog.setUserAcc(newAccType);
+        }
+
+
         if (rowsUpdated > 0) {
             Toast.makeText(this, "Usuario actualizado correctamente", Toast.LENGTH_SHORT).show();
             limpiarCampos();
+
         } else {
             Toast.makeText(this, "Error al actualizar usuario", Toast.LENGTH_SHORT).show();
         }
@@ -578,17 +628,15 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
         etDate.setText(usuario.getUserBirth());
         if (usuario.getUserAcc() == 1) {
             spAcc.setText("Normal");
-            spAcc.setEnabled(false);
-            spAcc2.setEnabled(false);
         } else if (usuario.getUserAcc() == 0) {
             spAcc.setText("Admin");
-            spAcc.setEnabled(true);
-            spAcc2.setEnabled(true);
         } else {
             spAcc.setText("");
         }
 
         switchBaja.setEnabled(userLog.getUserAcc() != 1);
+        spAcc.setEnabled(userLog.getUserAcc() != 1);
+        spAcc2.setEnabled(userLog.getUserAcc() != 1);
 
         if (usuario.getUserImage() != null) {
             String imageUriString = new String(usuario.getUserImage());
@@ -610,22 +658,22 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
                 null
         );
 
-        ArrayList<Integer> imageIds = new ArrayList<>();
+        ArrayList<Integer> existingImageIds = new ArrayList<>();
 
         // Verificar si hay imágenes almacenadas para este usuario
         if (cursor != null) {
             while (cursor.moveToNext()) {
                 @SuppressLint("Range") int imageId = cursor.getInt(cursor.getColumnIndex(UsuarioProvider.Imagenes._ID));
-                imageIds.add(imageId);
+                existingImageIds.add(imageId);
             }
             cursor.close();
         }
 
         // Eliminar las imágenes que ya no están presentes en la lista de imágenes del usuario
-        for (int i = 0; i < imageIds.size(); i++) {
-            if (!imagesList.contains(imageIds.get(i))) {
+        for (Integer existingImageId : existingImageIds) {
+            if (!imagesList.contains(existingImageId)) {
                 String selection = UsuarioProvider.Imagenes._ID + "=?";
-                String[] selectionArgs = {String.valueOf(imageIds.get(i))};
+                String[] selectionArgs = {String.valueOf(existingImageId)};
                 getContentResolver().delete(UsuarioProvider.CONTENT_URI_IMAGENES, selection, selectionArgs);
             }
         }
@@ -637,7 +685,7 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
             byte[] imageData = baos.toByteArray();
 
             ContentValues imageValues = new ContentValues();
-            imageValues.put(UsuarioProvider.Imagenes.COL_USER_ID, userId); // Asociar la imagen con el ID del usuario
+            imageValues.put(UsuarioProvider.Imagenes.COL_USER_ID, userId);
             imageValues.put(UsuarioProvider.Imagenes.COL_IMAGE_URL, imageData);
 
             getContentResolver().insert(UsuarioProvider.CONTENT_URI_IMAGENES, imageValues);
@@ -786,19 +834,19 @@ public class SharedEditRegister extends AppCompatActivity implements OnImageClic
         new MaterialAlertDialogBuilder(this)
                 .setTitle("Mensaje")
                 .setMessage("Que desea hacer con la imagen")
-                .setPositiveButton("Eliminar la imagen", new DialogInterface.OnClickListener() {
+                .setNegativeButton("Eliminar la imagen", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         deletePhoto(position);
                     }
                 })
-                .setNeutralButton("Utilizarla de avatar", new DialogInterface.OnClickListener() {
+                .setPositiveButton("Utilizarla de avatar", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         useAsAvatar(position);
                     }
                 })
-                .setNegativeButton("Cancelar", null)
+                .setNeutralButton("Cancelar", null)
                 .show();
     }
 

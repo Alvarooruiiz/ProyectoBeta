@@ -1,8 +1,11 @@
 package com.example.proyectobeta.List;
 
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -44,9 +47,10 @@ public class List extends AppCompatActivity implements OnAvatarClickListener, On
     private static final int MnOp2 = 1;
 
 
+
     private SearchView searchView;
     private ArrayList<Usuario> usuariosMarcados;
-    private static final int REQUEST_EDIT_USER = 102;
+    private static final int REQUEST_EDIT_USER = 123;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -57,7 +61,7 @@ public class List extends AppCompatActivity implements OnAvatarClickListener, On
 
 
 
-        usuariosMarcados = new ArrayList<>(); // Inicializar la lista aquí
+        usuariosMarcados = new ArrayList<>();
 
         adapter = new RecyclerAdapterList(this, new ArrayList<>(), userLog,usuariosMarcados); // Adaptador vacío inicialmente
         rvList = findViewById(R.id.rvList);
@@ -181,19 +185,51 @@ public class List extends AppCompatActivity implements OnAvatarClickListener, On
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_EDIT_USER && resultCode == RESULT_OK) {
-            listar();
+        if (resultCode == RESULT_OK) {
+            Usuario userLogUpdated = (Usuario) data.getSerializableExtra("userLogUpdated");
+            if (userLogUpdated != null) {
+                Toast.makeText(this, "" + userLogUpdated.getUserAcc(), Toast.LENGTH_SHORT).show();
+                userLog.setUserAcc(userLogUpdated.getUserAcc());
+                listar();
+            }else{
+                Toast.makeText(this, "es nulo", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
     @Override
     public void onAvatarClick(Usuario usuario) {
-        Intent intent = new Intent(List.this, Carousel.class);
-        intent.putExtra("userId", usuario.getId());
-        startActivity(intent);
+        ArrayList<Bitmap> imageBitmaps = obtenerListaDeBitmapsDeImagenes(usuario.getId());
+
+        if (imageBitmaps.isEmpty()) {
+            Toast.makeText(this, "No hay imágenes disponibles", Toast.LENGTH_SHORT).show();
+        } else {
+            Intent intent = new Intent(List.this, Carousel.class);
+            intent.putExtra("userId", usuario.getId());
+            startActivity(intent);
+        }
     }
 
+    private ArrayList<Bitmap> obtenerListaDeBitmapsDeImagenes(int userId) {
+        ArrayList<Bitmap> bitmaps = new ArrayList<>();
+        Cursor cursor = getContentResolver().query(
+                UsuarioProvider.CONTENT_URI_IMAGENES,
+                new String[]{UsuarioProvider.Imagenes.COL_IMAGE_URL},
+                UsuarioProvider.Imagenes.COL_USER_ID + " = ?",
+                new String[]{String.valueOf(userId)},
+                null);
 
+        if (cursor != null && cursor.moveToFirst()) {
+            do {
+                @SuppressLint("Range") byte[] imageData = cursor.getBlob(cursor.getColumnIndex(UsuarioProvider.Imagenes.COL_IMAGE_URL));
+                Bitmap bitmap = BitmapFactory.decodeByteArray(imageData, 0, imageData.length);
+                bitmaps.add(bitmap);
+            } while (cursor.moveToNext());
+            cursor.close();
+        }
+
+        return bitmaps;
+    }
     @Override
     public void OnItemCardViewClick(Usuario usuario) {
 
@@ -241,19 +277,25 @@ public class List extends AppCompatActivity implements OnAvatarClickListener, On
     }
 
     private void eliminarUsuariosMarcados() {
+        boolean salir = false;
         for (Usuario usuario : usuariosMarcados) {
             String selection = UsuarioProvider.Usuarios._ID + "=?";
             String[] selectionArgs = {String.valueOf(usuario.getId())};
-
+            if(userLog.getId() == usuario.getId()){
+                salir = true;
+            }
             int rowsDeleted = getContentResolver().delete(UsuarioProvider.CONTENT_URI_USUARIOS, selection, selectionArgs);
 
             if (rowsDeleted > 0) {
                 Toast.makeText(this, "Usuarios eliminados exitosmente", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Error al eliminar usuarios", Toast.LENGTH_SHORT).show();
             }
-        }
 
+        }
+        if(salir){
+            Intent intent = new Intent(List.this, Login.class);
+            startActivity(intent);
+            finish();
+        }
         listUsers.removeAll(usuariosMarcados);
         adapter.notifyDataSetChanged();
         adapter.clearSelection();
